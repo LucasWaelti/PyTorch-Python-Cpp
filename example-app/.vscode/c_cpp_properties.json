@@ -1,0 +1,19 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/home/lucaswaelti/Documents/PyTorch/libtorch",
+                "/home/lucaswaelti/Documents/PyTorch/libtorch/include/torch/csrc/api/include",
+                "/home/lucaswaelti/Documents/PyTorch/libtorch/include/torch/csrc/api/include/torch"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "clang-x64"
+        }
+    ],
+    "version": 4
+}
