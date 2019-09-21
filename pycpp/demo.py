@@ -121,16 +121,6 @@ def main():
 
         model = train(model, data, truth) 
 
-
-
-
-
-
-
-
-
-
-
-
 if __name__ == "__main__":
     main() 
+

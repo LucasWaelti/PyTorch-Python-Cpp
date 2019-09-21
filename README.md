@@ -5,7 +5,7 @@ While the Python implementations should run on any OS, the C++ implementations w
 ## Get PyTorch/libtorch
 Go to [PyTorch](https://pytorch.org/) and download the corresponding package. 
 
-![Screenshot from 2019-09-21 15-54-55](/home/lucaswaelti/Pictures/Screenshot from 2019-09-21 15-54-55.png)
+![Screenshot from 2019-09-21 15-54-55](./pytorch_install.png)
 
 Then simply extract the zip file where you want to install the library or follow the instruction depending on the language selected. 
 
