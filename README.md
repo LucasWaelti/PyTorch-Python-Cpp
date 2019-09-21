@@ -24,6 +24,8 @@ make
 
 This folder aims at implementing the same program both in **C++** and **Python** to illustrate the similarities of the **PyTorch** API between both languages. 
 
+A simple neural net is created and trained on a dummy dataset. It consists of points inside a circle of a given radius and points outside of it. The network learns to differentiate the two classes. 
+
 ### Python 
 
 To run the python script: 
