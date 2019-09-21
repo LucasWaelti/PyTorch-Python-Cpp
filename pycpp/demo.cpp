@@ -4,11 +4,11 @@
 
 //#define BASICS 
 #define LEARN
-#define DIM 10 // Dataset size
+#define DIM 100 // Dataset size
 
 
-class Net: torch::nn::Module{
-  public: 
+struct Net: torch::nn::Module{
+
     Net(){
       // Constructor - build the network's layers
       _in = register_module("in",torch::nn::Linear(2,10));
@@ -26,7 +26,6 @@ class Net: torch::nn::Module{
       return x;
     }
 
-  private:
     torch::nn::Linear _in{nullptr},_h{nullptr},_out{nullptr};
 };
 
@@ -49,12 +48,48 @@ torch::Tensor createGroundTruth(const torch::Tensor& input){
   for(int i=0; i<input.size(0); i++){
     if(rule(input[i][0].item().toDouble(),
             input[i][1].item().toDouble()) == 0){
-      out[i] = 0.;
+      out[i] = 0;
     }else{
-      out[i] = 1.;
+      out[i] = 1;
     }
   }
   return out;
+}
+
+void train(Net& model, const torch::Tensor& train_input, 
+          torch::Tensor train_output, unsigned int batch_size=10){
+  
+  // Specify the loss function
+  auto loss = torch::mse_loss;
+  
+  // Define the number of epochs to train the network
+  unsigned int epochs = 25;
+
+  // Set the learning rate
+  double eta = 0.1;
+
+  // Define optimizer
+  torch::optim::SGD optimizer(model.parameters(),
+    torch::optim::SGDOptions(eta).momentum(0.0)); 
+  
+  double sum_loss = 0.;
+  for(uint e=0; e<epochs; e++){
+    sum_loss = 0.;
+    for(uint b=0; b<train_input.size(0); b+=batch_size){
+      torch::Tensor output = model.forward(
+        torch::narrow(train_input,0,b,batch_size));
+      torch::Tensor loss = torch::mse_loss(output.view(-1),
+        train_output.narrow(0,b,batch_size));
+      
+      sum_loss += loss.item().toDouble();
+      model.zero_grad();
+      loss.backward();
+
+      optimizer.step();
+    }
+    std::cout << "Sum of loss at epoch " << e 
+      << ": " << sum_loss << std::endl;
+  }
 }
 
 int main() {
@@ -83,8 +118,8 @@ int main() {
 
   torch::Tensor data  = create2DDataSet(DIM);
   torch::Tensor truth = createGroundTruth(data);
-  std::cout << data  << std::endl;
-  std::cout << truth << std::endl; 
+
+  train(model, data, truth);
   
 #endif
   return EXIT_SUCCESS;

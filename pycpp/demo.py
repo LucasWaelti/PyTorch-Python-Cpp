@@ -20,11 +20,10 @@ class Net(torch.nn.Module):
         # apply ReLU activations and sigmoid for the output
         x = F.relu(self._in(x))
         x = F.relu(self._h(x))
-        x = F.sigmoid(self._out(x))
+        x = torch.sigmoid(self._out(x))
 
         # return the output
         return x 
-
 
 
 
@@ -57,6 +56,42 @@ def createGroundTruth(inp:torch.tensor):
 
 
 
+def train(model:Net, train_input:torch.Tensor, 
+    train_output:torch.Tensor, batch_size=10):
+    
+    # Specify the loss function
+    loss = torch.nn.MSELoss() 
+    
+    # Define the number of epochs to train the network
+    epochs = 25
+    
+    # Set the learning rate
+    eta = 0.1
+
+    # Define optimizer
+    optimizer = torch.optim.SGD(model.parameters(), 
+                                lr=eta, momentum=0.0)
+
+    for e in range(epochs):
+        sum_loss = 0
+        for b in range(0, train_input.size(0), batch_size):
+            # Narrow: # tensor,dim,start,length
+            output = model(train_input.narrow(0, b, batch_size)) 
+            l = loss(output.view(-1), 
+                    train_output.narrow(0,b,batch_size).float())
+             
+            sum_loss = sum_loss + l.item()
+            model.zero_grad()
+            l.backward()
+
+            optimizer.step()
+
+        print('Sum of loss at epoch {}: \t'.format(e),sum_loss,end='\r')
+    print('')
+    return model
+
+
+
 def main():
     print("Running Python implementation\n")
     
@@ -83,9 +118,8 @@ def main():
 
         data  = create2DDataSet(DIM)
         truth = createGroundTruth(data)
-        print(data)
-        print(truth) 
 
+        model = train(model, data, truth) 
 
 
 
