@@ -1,3 +1,4 @@
+### cmake related files
 CMakeCache.txt
 CMakeFiles
 CMakeScripts
@@ -9,7 +10,11 @@ compile_commands.json
 CTestTestfile.cmake
 */build/*
 
+### python's cache
 __pycache__
 
-### forget editor related stuff
+### editor related stuff
 .vscode
+
+### stored models
+*/models/*

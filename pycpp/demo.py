@@ -4,7 +4,7 @@ from torch.nn import functional as F
 
 BASICS = False
 LEARN = True 
-DIM = 10 # Dataset size
+DIM = 100 # Dataset size
 
 
 class Net(torch.nn.Module):
@@ -58,6 +58,8 @@ def createGroundTruth(inp:torch.tensor):
 
 def train(model:Net, train_input:torch.Tensor, 
     train_output:torch.Tensor, batch_size=10):
+    # Set the model in training state. Otherwise .eval()
+    model.train()
     
     # Specify the loss function
     loss = torch.nn.MSELoss() 
@@ -72,6 +74,12 @@ def train(model:Net, train_input:torch.Tensor,
     optimizer = torch.optim.SGD(model.parameters(), 
                                 lr=eta, momentum=0.0)
 
+    
+    
+    
+    
+    
+    
     for e in range(epochs):
         sum_loss = 0
         for b in range(0, train_input.size(0), batch_size):
@@ -90,6 +98,17 @@ def train(model:Net, train_input:torch.Tensor,
     print('')
     return model
 
+
+
+
+def save(model:Net,path:str):
+    # Save the model 
+    torch.save(model,path)
+
+
+def load(model:Net,path:str):
+    # Load the model 
+    torch.load(model,path)
 
 
 def main():
@@ -120,6 +139,8 @@ def main():
         truth = createGroundTruth(data)
 
         model = train(model, data, truth) 
+
+        save(model,"./models/model_py.pt")
 
 if __name__ == "__main__":
     main() 

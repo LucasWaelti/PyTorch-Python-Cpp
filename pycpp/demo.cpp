@@ -7,9 +7,9 @@
 #define DIM 100 // Dataset size
 
 
-struct Net: torch::nn::Module{
+struct NetImpl: torch::nn::Module{
 
-    Net(){
+    NetImpl(){
       // Constructor - build the network's layers
       _in = register_module("in",torch::nn::Linear(2,10));
       _h = register_module("h",torch::nn::Linear(10,5));
@@ -28,6 +28,11 @@ struct Net: torch::nn::Module{
 
     torch::nn::Linear _in{nullptr},_h{nullptr},_out{nullptr};
 };
+// create a module holder, which is a std::shared_ptr<NetImpl>.
+// usage: 
+//  Net model = Net();
+//  model->forward(); (instead of model.forward())
+TORCH_MODULE(Net);
 
 torch::Tensor create2DDataSet(unsigned int dim=DIM){
   return torch::rand({dim,2});
@@ -58,9 +63,11 @@ torch::Tensor createGroundTruth(const torch::Tensor& input){
 
 void train(Net& model, const torch::Tensor& train_input, 
           torch::Tensor train_output, unsigned int batch_size=10){
-  
+  // Set the model in training state. Otherwise .eval()
+  model->train();
+
   // Specify the loss function
-  auto loss = torch::mse_loss;
+  // Use MSE loss -> see loops below
   
   // Define the number of epochs to train the network
   unsigned int epochs = 25;
@@ -69,27 +76,44 @@ void train(Net& model, const torch::Tensor& train_input,
   double eta = 0.1;
 
   // Define optimizer
-  torch::optim::SGD optimizer(model.parameters(),
+  torch::optim::SGD optimizer(model->parameters(),
     torch::optim::SGDOptions(eta).momentum(0.0)); 
+  /*Use Adam instead:
+    torch::optim::Adam generator_optimizer(
+      generator->parameters(), 
+      torch::optim::AdamOptions(2e-4).beta1(0.5)
+    );
+  */
   
   double sum_loss = 0.;
   for(uint e=0; e<epochs; e++){
     sum_loss = 0.;
     for(uint b=0; b<train_input.size(0); b+=batch_size){
-      torch::Tensor output = model.forward(
+      torch::Tensor output = model->forward(
         torch::narrow(train_input,0,b,batch_size));
       torch::Tensor loss = torch::mse_loss(output.view(-1),
         train_output.narrow(0,b,batch_size));
       
       sum_loss += loss.item().toDouble();
-      model.zero_grad();
+      model->zero_grad();
       loss.backward();
 
       optimizer.step();
     }
     std::cout << "Sum of loss at epoch " << e 
-      << ": " << sum_loss << std::endl;
+      << ": " << sum_loss << "\t\r" << std::flush;
   }
+  std::cout << std::endl;
+}
+
+void save(Net& model, std::string path){
+  // Save the model
+  torch::save(model,path); 
+}
+
+void load(Net& model, std::string path){
+  // Load the model
+  torch::load(model,path); 
 }
 
 int main() {
@@ -120,6 +144,8 @@ int main() {
   torch::Tensor truth = createGroundTruth(data);
 
   train(model, data, truth);
+
+  save(model,"./models/model_cpp.pt");
   
 #endif
   return EXIT_SUCCESS;
