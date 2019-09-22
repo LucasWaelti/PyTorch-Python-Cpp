@@ -35,7 +35,7 @@ struct NetImpl: torch::nn::Module{
 TORCH_MODULE(Net);
 
 torch::Tensor create2DDataSet(unsigned int dim=DIM){
-  return torch::rand({dim,2});
+  return 2 * torch::rand({dim,2}) - 1;
 }
 
 double rule(double x, double y, double r=0.5){
@@ -70,7 +70,7 @@ void train(Net& model, const torch::Tensor& train_input,
   // Use MSE loss -> see loops below
   
   // Define the number of epochs to train the network
-  unsigned int epochs = 25;
+  unsigned int epochs = 100;
 
   // Set the learning rate
   double eta = 0.1;
@@ -104,6 +104,26 @@ void train(Net& model, const torch::Tensor& train_input,
       << ": " << sum_loss << "\t\r" << std::flush;
   }
   std::cout << std::endl;
+}
+
+void evalAccuracy(Net& model, torch::Tensor test_input, 
+                  torch::Tensor test_output){
+  model->eval();
+
+  torch::Tensor output = model->forward(test_input).view(-1);
+  for(uint i=0; i<output.size(0); i++){
+    output[i] = output[i].item().toDouble()<0.5 ? 0 : 1;
+  }
+  output = test_output == output;
+
+  uint count = 0;
+  for(uint r=0; r<output.size(0); r++){
+    if(!output[r].item().toBool()){
+      count++;
+    }
+  }
+  double accuracy = (1.-(double)count/(double)output.size(0))*100.;
+  std::cout << "Accuracy: " << accuracy << "%" << std::endl; 
 }
 
 void save(Net& model, std::string path){
@@ -140,12 +160,18 @@ int main() {
 #elif defined(LEARN) 
   Net model = Net(); 
 
-  torch::Tensor data  = create2DDataSet(DIM);
-  torch::Tensor truth = createGroundTruth(data);
+  bool training = false;
+  if(training){
+    torch::Tensor data  = create2DDataSet(DIM);
+    torch::Tensor truth = createGroundTruth(data);
+    train(model, data, truth);
+    save(model,"./models/model_cpp.pt");
+  } 
+  else{ load(model,"./models/model_cpp.pt"); }
 
-  train(model, data, truth);
-
-  save(model,"./models/model_cpp.pt");
+  torch::Tensor test_input  = create2DDataSet(DIM);
+  torch::Tensor test_ouptut = createGroundTruth(test_input);
+  evalAccuracy(model,test_input,test_ouptut);
   
 #endif
   return EXIT_SUCCESS;

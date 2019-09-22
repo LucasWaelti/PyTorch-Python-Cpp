@@ -20,7 +20,7 @@ class Net(torch.nn.Module):
         # apply ReLU activations and sigmoid for the output
         x = F.relu(self._in(x))
         x = F.relu(self._h(x))
-        x = torch.sigmoid(self._out(x))
+        x = torch.tanh(self._out(x))
 
         # return the output
         return x 
@@ -29,8 +29,13 @@ class Net(torch.nn.Module):
 
 
 
+
+
+
+
+
 def create2DDataSet(dim:int):
-    return torch.rand([dim,2])
+    return 2*torch.rand([dim,2])-1
 
 
 def rule(x,y,r=0.5):
@@ -65,7 +70,7 @@ def train(model:Net, train_input:torch.Tensor,
     loss = torch.nn.MSELoss() 
     
     # Define the number of epochs to train the network
-    epochs = 25
+    epochs = 100
     
     # Set the learning rate
     eta = 0.1
@@ -74,6 +79,7 @@ def train(model:Net, train_input:torch.Tensor,
     optimizer = torch.optim.SGD(model.parameters(), 
                                 lr=eta, momentum=0.0)
 
+    
     
     
     
@@ -100,15 +106,34 @@ def train(model:Net, train_input:torch.Tensor,
 
 
 
+def evalAccuracy(model:Net, test_input:torch.Tensor, 
+    test_output:torch.Tensor):
+    model.eval()
+
+    output = model(test_input).view(-1)
+    for i,v in enumerate(output):
+        output[i] = 0 if v < 0.5 else 1 
+    result = test_output == output
+     
+    count = 0
+    for r in result:  
+        if r == False:
+            count += 1
+    print("Accuracy: ",(1-count/len(result))*100,"%")
+
+
+
+
+
 
 def save(model:Net,path:str):
     # Save the model 
     torch.save(model,path)
 
 
-def load(model:Net,path:str):
+def load(path:str):
     # Load the model 
-    torch.load(model,path)
+    return torch.load(path) 
 
 
 def main():
@@ -135,12 +160,18 @@ def main():
     elif LEARN:
         model = Net()
 
-        data  = create2DDataSet(DIM)
-        truth = createGroundTruth(data)
+        training = False
+        if training is True:
+            data  = create2DDataSet(DIM)
+            truth = createGroundTruth(data)
+            model = train(model, data, truth) 
+            save(model,"./models/model_py.pt")
+        else:
+            model = load("./models/model_py.pt")
 
-        model = train(model, data, truth) 
-
-        save(model,"./models/model_py.pt")
+        test_input  = create2DDataSet(DIM)
+        test_output = createGroundTruth(test_input)
+        evalAccuracy(model, test_input, test_output)
 
 if __name__ == "__main__":
     main() 
