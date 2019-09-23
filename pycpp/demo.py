@@ -160,18 +160,29 @@ def main():
     elif LEARN:
         model = Net()
 
-        training = False
+        training = True
         if training is True:
             data  = create2DDataSet(DIM)
             truth = createGroundTruth(data)
             model = train(model, data, truth) 
             save(model,"./models/model_py.pt")
+
+            # Use torch.jit.trace to generate a torch.jit.ScriptModule via tracing.
+            example = torch.rand(1,2) 
+            traced_script_module = torch.jit.trace(model, example)
+            # Use torch.jit.script to generate a torch.jit.ScriptModule via scripting.
+            scripted_script_module = torch.jit.script(model) 
+            # Save both models to the disk
+            traced_script_module.save("./models/traced.pt")
+            scripted_script_module.save("./models/scripted.pt")
         else:
             model = load("./models/model_py.pt")
 
         test_input  = create2DDataSet(DIM)
         test_output = createGroundTruth(test_input)
         evalAccuracy(model, test_input, test_output)
+
+        
 
 if __name__ == "__main__":
     main() 

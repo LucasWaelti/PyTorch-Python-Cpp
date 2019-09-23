@@ -1,6 +1,7 @@
 #include <iostream>
 #include <math.h>
 #include <torch/torch.h>
+#include <torch/script.h>
 
 //#define BASICS 
 #define LEARN
@@ -125,6 +126,21 @@ void evalAccuracy(Net& model, torch::Tensor test_input,
   double accuracy = (1.-(double)count/(double)output.size(0))*100.;
   std::cout << "Accuracy: " << accuracy << "%" << std::endl; 
 }
+void evalAccuracy(torch::Tensor test_output, torch::Tensor output){
+  for(uint i=0; i<output.size(0); i++){
+    output[i] = output[i].item().toDouble()<0.5 ? 0 : 1;
+  }
+  output = test_output == output;
+
+  uint count = 0;
+  for(uint r=0; r<output.size(0); r++){
+    if(!output[r].item().toBool()){
+      count++;
+    }
+  }
+  double accuracy = (1.-(double)count/(double)output.size(0))*100.;
+  std::cout << "Accuracy: " << accuracy << "%" << std::endl; 
+}
 
 void save(Net& model, std::string path){
   // Save the model
@@ -134,6 +150,18 @@ void save(Net& model, std::string path){
 void load(Net& model, std::string path){
   // Load the model
   torch::load(model,path); 
+}
+
+torch::jit::script::Module deserializeModel(std::string path){
+  torch::jit::script::Module module;
+  try {
+    // Deserialize the ScriptModule from a file using torch::jit::load().
+    module = torch::jit::load(path); 
+  }
+  catch (const c10::Error& e) {
+    std::cerr << "error loading the model\n";
+  }
+  return module;
 }
 
 int main() {
@@ -159,6 +187,7 @@ int main() {
 
 #elif defined(LEARN) 
   Net model = Net(); 
+  torch::jit::script::Module traced,scripted;
 
   bool training = false;
   if(training){
@@ -167,11 +196,27 @@ int main() {
     train(model, data, truth);
     save(model,"./models/model_cpp.pt");
   } 
-  else{ load(model,"./models/model_cpp.pt"); }
+  else{ 
+    load(model,"./models/model_cpp.pt"); 
+    traced = deserializeModel("./models/traced.pt");
+    scripted = deserializeModel("./models/scripted.pt");
+  }
 
   torch::Tensor test_input  = create2DDataSet(DIM);
-  torch::Tensor test_ouptut = createGroundTruth(test_input);
-  evalAccuracy(model,test_input,test_ouptut);
+  torch::Tensor test_output = createGroundTruth(test_input);
+  evalAccuracy(model,test_input,test_output);
+
+  if(!training){
+    std::vector<torch::jit::IValue> inputs;
+    inputs.push_back(test_input);
+
+    // Execute the model and turn its output into a tensor.
+    torch::Tensor out_traced = traced.forward(inputs).toTensor();
+    torch::Tensor out_scripted = scripted.forward(inputs).toTensor();
+    //std::cout << out_traced << std::endl;
+    //evalAccuracy(test_output,out_traced);
+    //evalAccuracy(test_output,out_scripted);
+  }
   
 #endif
   return EXIT_SUCCESS;
