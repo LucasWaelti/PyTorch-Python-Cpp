@@ -123,3 +123,18 @@ void main(){
 
 Here, `TORCH_MODULE` creates a module holder, which is a `std::shared_ptr<NetImpl>`. This enables the user to then call `torch::save(model,"path");` and `torch::load(model,"path");`. 
 
+## ./webots
+
+This folder demonstrates how to link a **shared object** implementing the deep learning functionalities of the project to a Webots controller. 
+
+The [minimal `CMakeLists.txt` example](https://pytorch.org/cppdocs/installing.html) can be directly used by replacing `add_executable(example-app example-app.cpp)` by `add_library(example-app SHARED example-app.cpp)`. This will create the `libexample-app.so` whose functions can be called by a Webots controller when placed in the `library` folder of the Webots project.  
+
+The Webots `makefile` must be modified by adding the following lines to find the shared object:
+
+```makefile
+INCLUDE = -I"/path/the/shared/object's/header" 
+LIBRARIES = -L"/path/the/shared/object" -lexample-app
+```
+
+
+
