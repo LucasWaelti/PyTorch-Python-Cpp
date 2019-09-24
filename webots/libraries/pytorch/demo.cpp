@@ -1,5 +1,11 @@
 #include "demo.hpp"
 
+torch::Tensor create2DDataSet(unsigned int dim){
+  return 2 * torch::rand({dim,2}) - 1;
+}
+void printHello(){
+  std::cout << "Hello from archive!! - new version!!" << std::endl;
+}
 
 NetImpl::NetImpl(){
   // Constructor - build the network's layers
@@ -18,9 +24,7 @@ torch::Tensor NetImpl::forward(torch::Tensor x){
   return x;
 }
 
-torch::Tensor create2DDataSet(unsigned int dim){
-  return 2 * torch::rand({dim,2}) - 1;
-}
+
 
 double rule(double x, double y, double r){
   // 0 if contained in circle with radius r, 
@@ -62,12 +66,7 @@ void train(Net& model, const torch::Tensor& train_input,
   // Define optimizer
   torch::optim::SGD optimizer(model->parameters(),
     torch::optim::SGDOptions(eta).momentum(0.0)); 
-  /*Use Adam instead:
-    torch::optim::Adam generator_optimizer(
-      generator->parameters(), 
-      torch::optim::AdamOptions(2e-4).beta1(0.5)
-    );
-  */
+  
   
   double sum_loss = 0.;
   for(uint e=0; e<epochs; e++){

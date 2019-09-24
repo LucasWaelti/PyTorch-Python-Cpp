@@ -13,4 +13,5 @@ RectangleArena {
 }
 Khepera4 {
   rotation 0 1 0 3.141592653589793
+  controller "torch_controller"
 }
