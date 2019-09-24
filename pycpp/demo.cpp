@@ -211,11 +211,11 @@ int main() {
     inputs.push_back(test_input);
 
     // Execute the model and turn its output into a tensor.
-    torch::Tensor out_traced = traced.forward(inputs).toTensor();
-    torch::Tensor out_scripted = scripted.forward(inputs).toTensor();
-    //std::cout << out_traced << std::endl;
-    //evalAccuracy(test_output,out_traced);
-    //evalAccuracy(test_output,out_scripted);
+    torch::Tensor out_traced = traced.forward(inputs).toTensor().view(-1);
+    torch::Tensor out_scripted = scripted.forward(inputs).toTensor().view(-1);
+    std::cout << out_traced << std::endl;
+    evalAccuracy(test_output,out_traced);
+    evalAccuracy(test_output,out_scripted);
   }
   
 #endif
