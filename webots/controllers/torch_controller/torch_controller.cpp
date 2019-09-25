@@ -34,8 +34,8 @@ int main(int argc, char **argv) {
   //  DistanceSensor *ds = robot->getDistanceSensor("dsname");
   //  ds->enable(timeStep);
   
-  std::cout << "Hello World" << std::endl;
   printHello(); 
+  demo(true);
 
   // Main loop:
   // - perform simulation steps until Webots is stopping the controller

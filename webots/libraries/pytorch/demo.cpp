@@ -1,4 +1,4 @@
-#include "demo.hpp"
+#include "demo_torch.hpp"
 
 torch::Tensor create2DDataSet(unsigned int dim){
   return 2 * torch::rand({dim,2}) - 1;

@@ -7,8 +7,6 @@ add_library(demo SHARED demo.cpp)
 target_link_libraries(demo "${TORCH_LIBRARIES}")
 set_property(TARGET demo PROPERTY CXX_STANDARD 11)
 
-#install(TARGET demo DESTINATION /home/lucaswaelti/Documents/PyTorch-Python-Cpp/webots/libraries)
-
 # The following code block is suggested to be used on Windows.
 # According to https://github.com/pytorch/pytorch/issues/25457,
 # the DLLs need to be copied to avoid memory errors.
