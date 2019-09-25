@@ -12,7 +12,6 @@ CTestTestfile.cmake
 webots/*/build/*
 webots/controllers/pytorch_controller/build/release/*
 webots/libraries/pytorch/build/*
-webots/libraries/*
 webots/libraries/pytorch/build/*
 
 ### python's cache
