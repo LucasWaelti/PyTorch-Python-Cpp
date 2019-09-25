@@ -42,7 +42,7 @@ To build the C++ code:
 ./build.sh
 ```
 
-> :warning: you need to adapt the **libtorch** installation path in the `build.sh` script. 
+> :warning:  You need to adapt the **libtorch** installation path in the `build.sh` script. 
 
 To run the C++ code: 
 
@@ -125,16 +125,19 @@ Here, `TORCH_MODULE` creates a module holder, which is a `std::shared_ptr<NetImp
 
 ## ./webots
 
-This folder demonstrates how to link a **shared object** implementing the deep learning functionalities of the project to a Webots controller. 
+This folder demonstrates how to link a **shared object**, implementing the deep learning functionalities of PyTorch, to a Webots controller. 
 
-The [minimal `CMakeLists.txt` example](https://pytorch.org/cppdocs/installing.html) can be directly used by replacing `add_executable(example-app example-app.cpp)` by `add_library(example-app SHARED example-app.cpp)`. This will create the `libexample-app.so` whose functions can be called by a Webots controller when placed in the `library` folder of the Webots project.  
+The [minimal `CMakeLists.txt` example](https://pytorch.org/cppdocs/installing.html) can be directly used by replacing `add_executable(example-app example-app.cpp)` by `add_library(example-app SHARED example-app.cpp)`. This will create the `libexample-app.so` file, whose functions can be called by a Webots controller when placed in the `library` folder of the Webots project.  
 
 The Webots `makefile` must be modified by adding the following lines to find the shared object:
 
 ```makefile
-INCLUDE = -I"/path/the/shared/object's/header" 
-LIBRARIES = -L"/path/the/shared/object" -lexample-app
+INCLUDE = -I"/path/to/shared/object's/header" 
+LIBRARIES = -L"/path/to/webots/libraries" -lexample-app -L"/path/to/libtorch/lib" -lc10 -lcaffe2_module_test_dynamic -lcaffe2_detectron_ops -lgomp -ltorch
 ```
 
+The `INCLUDE` variable provides a path to the header of the shared object implementing the neural network. The `LIBRAIRIES` variable provides a path to the shared object and to other shared objects required by PyTorch. 
 
+The shared object hosting the neural network should have two headers. The *first one* should contain everything concerning PyTorch (declarations of `struct`, functions, constants, etc...) and include the *second one*, which should only offer elements that do ***not*** depend on PyTorch which the Webots controller can include and use. The second header therefore should behave as a wrapper for the PyTorch functionalities, which are not directly visible by the Webots controller. This enables a fully separated compilation of both PyTorch and Webots controllers. 
 
+:warning:  A `models` folder must be created next to the controller's executable. The shared object will otherwise fail to save/load trained models and the controller will crash. 
